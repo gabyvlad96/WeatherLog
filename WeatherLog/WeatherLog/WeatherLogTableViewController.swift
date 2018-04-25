@@ -20,6 +20,8 @@ class WeatherLogTableViewController: UITableViewController, UISearchBarDelegate 
 
         searchBar.delegate = self
         
+        updateWeatherForLocation(location: "Bucharest")
+        
 
     }
 
@@ -74,7 +76,8 @@ class WeatherLogTableViewController: UITableViewController, UISearchBarDelegate 
 
         let weatherObject = forecastData[indexPath.row]
         cell.textLabel?.text = weatherObject.summary
-        cell.detailTextLabel?.text = "\(Int(weatherObject.temperature)) °F"
+        cell.detailTextLabel?.text = "\(Int((weatherObject.temperature - 32) * 5 / 9 )) °C"
+        cell.imageView?.image = UIImage(named: weatherObject.icon)
         
         return cell
     }
