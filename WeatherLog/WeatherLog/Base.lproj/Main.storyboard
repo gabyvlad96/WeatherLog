@@ -9,7 +9,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--City Weather-->
+        <!--WeatherLog-->
         <scene sceneID="4rP-0H-SiM">
             <objects>
                 <tableViewController id="9Ez-5R-JdM" customClass="WeatherLogTableViewController" customModule="WeatherLog" customModuleProvider="target" sceneMemberID="viewController">
@@ -54,7 +54,7 @@
                             <outlet property="delegate" destination="9Ez-5R-JdM" id="CiJ-z3-Avt"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="City Weather" id="W7m-o2-z2i"/>
+                    <navigationItem key="navigationItem" title="WeatherLog" id="W7m-o2-z2i"/>
                     <connections>
                         <outlet property="searchBar" destination="INz-XE-7PQ" id="pR4-vg-1pG"/>
                     </connections>
