@@ -8,22 +8,59 @@
 
 import UIKit
 import CoreLocation
+import MapKit
 
-class WeatherLogTableViewController: UITableViewController, UISearchBarDelegate {
+class WeatherLogTableViewController: UITableViewController, UISearchBarDelegate, CLLocationManagerDelegate {
 
     @IBOutlet weak var searchBar: UISearchBar!
     
     var forecastData = [Weather]()
     
+    @IBOutlet weak var mapView: MKMapView!
+    
+    let locationManager = CLLocationManager()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
         searchBar.delegate = self
         
-        updateWeatherForLocation(location: "Bucharest")
         
-
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+      
     }
+    
+    func geocode(latitude: Double, longitude: Double, completion: @escaping (CLPlacemark?, Error?) -> ())  {
+        CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: latitude, longitude: longitude)) { completion($0?.first, $1) }
+    }
+    
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation])
+        {
+        
+        let mylocation = locations[0] // in mylocation sunt memorate coordonatele din GPS
+        
+            //convertesc coordonatele in numele orasului
+            geocode(latitude: mylocation.coordinate.latitude, longitude: mylocation.coordinate.longitude) { placemark, error in
+                guard let placemark = placemark, error == nil else { return }
+                // you should always update your UI in the main thread
+                DispatchQueue.main.async {
+                    //  update UI here
+                   
+                    print("city:",     placemark.locality ?? "")
+                    self.updateWeatherForLocation(location: placemark.locality ?? "")
+                }
+            }
+        
+       //updateWeatherForLocation(location: "Bucharest")
+        
+            //afisez coordonatele obtionute prin GPS
+        print("Coordonate: \(mylocation.coordinate.latitude) / \(mylocation.coordinate.longitude)")
+    }
+    
+    
+
 
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
@@ -44,6 +81,9 @@ class WeatherLogTableViewController: UITableViewController, UISearchBarDelegate 
                             
                             DispatchQueue.main.async {
                                 self.tableView.reloadData()
+                                //afisez coordonatele reconvertite din numele orasului
+                                print("COORDONATE: \(location.coordinate.latitude) / \(location.coordinate.longitude)")
+
                             }
                         }
                         
@@ -52,29 +92,33 @@ class WeatherLogTableViewController: UITableViewController, UISearchBarDelegate 
             }
         }
     }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
+   
 
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return 1
+        return forecastData.count
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return forecastData.count
+        return 1
     }
 
+    
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        let date = Calendar.current.date(byAdding: .day, value: section, to: Date())
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMM dd, yyyy"
+        
+        return dateFormatter.string(from: date!)
+    }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
 
-        let weatherObject = forecastData[indexPath.row]
+        let weatherObject = forecastData[indexPath.section]
         cell.textLabel?.text = weatherObject.summary
         cell.detailTextLabel?.text = "\(Int((weatherObject.temperature - 32) * 5 / 9 )) °C"
         cell.imageView?.image = UIImage(named: weatherObject.icon)
